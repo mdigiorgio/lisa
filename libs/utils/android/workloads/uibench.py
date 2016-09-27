@@ -31,6 +31,7 @@ class UiBench(Workload):
 
     # Package required by this workload
     package = 'com.android.test.uibench'
+    activity = 'com.android.test.uibench.MainActivity'
 
     # Setup logger
     logger = logging.getLogger('UiBench')
@@ -76,7 +77,7 @@ class UiBench(Workload):
 
         # Start the main view of the app which must be running
         # to reset the frame statistics.
-        System.monkey(self.target, self.package)
+        System.start_activity(self.target, self.package, self.activity)
 
         # Force screen in PORTRAIT mode
         Screen.set_orientation(self.target, portrait=True)
