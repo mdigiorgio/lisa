@@ -130,6 +130,8 @@ class Trace(object):
         self.plots_prefix = plots_prefix
 
         self.__registerTraceEvents(events)
+        # TODO: better place the following command!!!
+        self.events.append('cpu_frequency_devlib')
         self.__parseTrace(data_dir, tasks, window, normalize_time,
                           trace_format)
         self.__computeTimeSpan()
@@ -670,6 +672,17 @@ class Trace(object):
             return
         df = self._dfg_trace_event('cpu_frequency')
         clusters = self.platform['clusters']
+
+        devlib_freq = self._dfg_trace_event('cpu_frequency_devlib')
+        if len(devlib_freq) > 0:
+            devlib_freq.rename(columns={'cpu_id':'cpu'}, inplace=True)
+            devlib_freq.rename(columns={'state':'frequency'}, inplace=True)
+            first_devlib_freq = devlib_freq.iloc[:self.platform['cpus_count']]
+            if df.index[0] > first_devlib_freq.index[-1]:
+                df = pd.concat([first_devlib_freq, df])
+                self.ftrace.cpu_frequency.data_frame = df
+
+        # Frequency Coherency Check
         for _, cpus in clusters.iteritems():
             cluster_df = df[df.cpu.isin(cpus)]
             for chunk in self._chunker(cluster_df, len(cpus)):
